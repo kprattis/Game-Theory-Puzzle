@@ -15,25 +15,71 @@ def play_game_terminal(game: Game):
 def play_game_visual(game : VisualGame):
     game.start()
 
+def create_graph(filename, N):
+
+    f = open(filename, 'w')
+    f.write(str(N) + '\n')
+
+    for i in range(N):
+        temps = ""
+        for j in range(N):
+            temps += " "
+            if i == j or random.random() < 0.7:
+                temps += '0'
+            else: 
+                temps += str(random.randint(-1, 1))
+        f.write(temps + '\n')
+    
+
+
+def load_graph(filename):
+
+    with open(filename) as f:
+
+        N = int(f.readline())
+        print(N)
+        E = list()
+        i = 0
+        for line in f:
+            templine = list()
+            templine = [int(x) for x in line.split()]
+            for j in range(N):
+                if templine[j] == 1:
+                    E.append([i, j])
+                if templine[j] == -1:
+                    E.append([j, i])
+            i += 1
+                
+               
+
+        V0 = random.choices(range(N), k=2)
+        V1 = random.choices(list(set(range(N)) - set(V0)), k= 2)
+        print(V0, V1)
+        
+    return [N, E, V0, V1] 
+
+
 if __name__ == "__main__":
 
     #Initialize the graph
-    N = 7
-    E = [[2, 0], [3, 1], [3, 2], [2, 4], [5, 3], [6, 5], [4, 5]]
+    filename = 'Adj_mat_2.txt'
+
+    create_graph(filename, 20)
+
+    [N, E, V0, V1]  = load_graph('Adj_mat_1.txt')
+    
     G = Graph(N, E)
 
-    V0 = [0]
-    V1 = [1]
-    s = 6
+    s = 2
 
     G.findneighs()
 
     #strategy = solve_game(G, V0, V1)
     players = [Player(0), AIPlayer(1)]
-
+    
     #this is the game object
     game = VisualGame(s, V0, V1, G, players)
-
+    print(players[1].strategy)
     play_game_visual(game)
 
     

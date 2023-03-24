@@ -4,6 +4,8 @@ class Node:
         self.max = 0
         self.id = id
         self.isterminal = True
+        self.belongsInV0 = False
+        self.belongsInV1 = False
         self.outneighs = set()
         self.inneighs = set()
 

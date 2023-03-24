@@ -3,7 +3,7 @@ from helpers.player import Player
 
 class Game:
 
-    def __init__(self, s : int, V0 : int, V1 : int, graph : Graph, players: list[Player]):
+    def __init__(self, s : int, V0 , V1, graph : Graph, players: list[Player]):
         self.initialNode = s
         self.s = s
         self.V0 = V0
@@ -12,10 +12,19 @@ class Game:
         self.round = 1
         self.turn = 0
         self.players = players
+
+        for node in self.graph.V:
+            if node.id in self.V0:
+                node.belongsInV0 = True
+            if node.id in self.V1:
+                node.belongsInV1 = True
         
         for p in self.players:
             p.game = self
-        
+            if p.type == 'AI':
+                strategies = p.compute_strategy()
+                p.strategy = [strategies[node.id][p.id] for node in self.graph.V]
+
     def start(self):
         self.graph.findneighs()
         while True:
