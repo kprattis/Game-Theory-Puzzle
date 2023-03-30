@@ -50,6 +50,7 @@ class AIPlayer(Player):
         return "Player " + str(self.id) + " chose node " + str(self.game.s)
     
     def compute_strategy(self):
+
         strategy = [None]*len(self.game.graph.V)
         Qupdate = queue.Queue()
 
@@ -111,3 +112,5 @@ class AIPlayer(Player):
 
         self.strategy = strategy
         return strategy
+    
+    

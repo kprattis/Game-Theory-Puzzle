@@ -1,7 +1,9 @@
 from helpers.game import Game
 from helpers.visualGame import VisualGame
-from helpers.player import *
+from helpers.player import Player, AIPlayer
 from helpers.graph import Graph
+
+import random
 
 def play_game_terminal(game: Game):
     print("------------- New Game starts -------------")
@@ -50,13 +52,21 @@ def load_graph(filename):
                     E.append([j, i])
             i += 1
                 
-               
-
         V0 = random.choices(range(N), k=2)
         V1 = random.choices(list(set(range(N)) - set(V0)), k= 2)
         print(V0, V1)
         
     return [N, E, V0, V1] 
+
+def chooseStartingNode(V0, V1, N):
+    taken = set(V0).union(set(V1))
+
+    all = set(range(N))
+
+    availiable = all - taken
+    choice = random.choice(list(availiable))
+
+    return choice
 
 
 if __name__ == "__main__":
@@ -69,9 +79,8 @@ if __name__ == "__main__":
     [N, E, V0, V1]  = load_graph('Adj_mat_1.txt')
     
     G = Graph(N, E)
-
-    s = 2
-
+    s = chooseStartingNode(V0, V1, N)
+    
     G.findneighs()
 
     #strategy = solve_game(G, V0, V1)

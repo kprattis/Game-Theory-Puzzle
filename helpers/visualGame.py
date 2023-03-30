@@ -3,6 +3,7 @@ from helpers.game import Game
 import tkinter as tk
 import networkx as nx
 import time
+import queue
 
 root = tk.Tk()
 canvas = tk.Canvas(root)
@@ -38,6 +39,7 @@ class VisualGame(Game):
             canvas.tag_bind(node_id, "<Button-1>", self.clickHandler)
             canvas.tag_bind(label_id, "<Button-1>", self.clickHandler)
 
+
         #Colors
         self.colors = [{"main" : "white", "current" : "green", "near" : "light green"}] * len(self.graph.V)
         for v0 in self.V0:
@@ -61,6 +63,12 @@ class VisualGame(Game):
         #add restart button
         restart_button = tk.Button(root, text="Restart", command=self.restart)
         restart_button.pack()
+
+        #add pause button
+        self.pause_button = tk.Button(root, text="Pause", command=self.pause)
+        self.pause_button.pack()
+        self.PAUSE = False
+        self.START = True
 
 
     def control(self):
@@ -90,7 +98,14 @@ class VisualGame(Game):
                 time.sleep(SHORTWAIT)
                 self.control()
 
-    def start(self):
+    def start(self, showStrategy = True):
+        
+        if showStrategy:
+            for p in self.players:
+                if p.type == "AI":
+                    self.interactiveStrategy()
+                    break
+        
         self.control()
         root.mainloop()
         
@@ -182,12 +197,11 @@ class VisualGame(Game):
             # Add a tag to the oval
             canvas.itemconfig(node_id, tags=("node", str(node)))
 
-            # Add the node label at the center of the circle
             label_id = canvas.create_text(
                 pos[node][0] * self.W + self.node_width * 1.5,
-                pos[node][1] * self.H + self.node_height * 1.5,
-                text=str(node),
-                font=("Arial", 10),
+                pos[node][1] * self.H + self.node_height * 1.5 ,
+                text="0, 0",
+                font=("Arial", 10, 'bold'),
                 fill="black"
             )
 
@@ -210,7 +224,7 @@ class VisualGame(Game):
 
     def showText(self, p):
         label.config(text = p)
-        root.update()
+        canvas.update()
 
     def clickHandler(self, event):
         if self.activePlayer:
@@ -239,6 +253,18 @@ class VisualGame(Game):
             else:
                 self.showText("Please choose a valid move")
 
+    def pause(self):
+        if self.PAUSE:
+            self.START = not self.START
+            self.pause_button.config(text = "Pause")
+            canvas.update()
+        else:
+            self.PAUSE = True
+            self.pause_button.config(text = "Continue")
+            canvas.update()
+            root.wait_variable(self.START)
+            
+        
 
     def restart(self):
         self.s = self.startingNode
@@ -246,5 +272,70 @@ class VisualGame(Game):
         self.round = 1
         self.control()
             
+    def interactiveStrategy(self):
+        
+        Qupdate = queue.Queue()
+        
+        self.showText("Initializing the score for the terminal nodes V0, V1\n")
+        for node in self.graph.V:
+            node.min = 0
+            node.max = 0
+            if node.belongsInV0:
+                node.min = 1
+                node.max = -1
+                canvas.itemconfig(self.node_ids[node.id][1], text = "1, -1")
+                for pred in node.inneighs:
+                    if not pred.belongsInV0 and not pred.belongsInV1:
+                        Qupdate.put(pred)
+                time.sleep(1)
+                canvas.update()
+
+            elif node.belongsInV1:
+                node.min = -1
+                node.max = 1
+                canvas.itemconfig(self.node_ids[node.id][1], text = "-1, 1")
+                for pred in node.inneighs:
+                    if not pred.belongsInV0 and not pred.belongsInV1:
+                        Qupdate.put(pred)
+
+                time.sleep(1)
+                canvas.update()
+
+        self.showText("End of initialization for the terminal nodes V0, V1\n")
+
+        while not Qupdate.empty():
             
-            
+            time.sleep(1)
+            self.showText("Queue = " + str([n.id for n in Qupdate.queue]))
+        
+            cur_node = Qupdate.get()
+            self.s = cur_node.id
+            time.sleep(1)
+            self.colorGraph()
+            self.showText("Currently updating score for node: " + str(cur_node.id))
+
+
+            min_val = 2
+            max_val = 2
+
+            for child in cur_node.outneighs:
+                if child.max < min_val:
+                    min_val = child.max
+                if child.min < max_val:
+                    max_val = child.min
+
+            if cur_node.min != -min_val or cur_node.max != -max_val:
+                
+                self.graph.V[cur_node.id].min = -min_val
+                self.graph.V[cur_node.id].max = -max_val
+                
+                time.sleep(1)
+                canvas.itemconfig(self.node_ids[cur_node.id][1], text = str(-min_val) + ", " + str(-max_val))
+                self.showText("Score updated for node: " + str(cur_node.id))
+
+
+                for pred in cur_node.inneighs:
+                    if not (pred.belongsInV0 or pred.belongsInV1) and pred not in Qupdate.queue:
+                        Qupdate.put(pred)
+
+        self.s = self.initialNode
