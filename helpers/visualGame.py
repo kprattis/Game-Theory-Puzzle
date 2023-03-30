@@ -61,14 +61,8 @@ class VisualGame(Game):
         label.pack()
 
         #add restart button
-        restart_button = tk.Button(root, text="Restart", command=self.restart)
-        restart_button.pack()
-
-        #add pause button
-        self.pause_button = tk.Button(root, text="Pause", command=self.pause)
-        self.pause_button.pack()
-        self.PAUSE = False
-        self.START = True
+        self.restart_button = tk.Button(root, text="Restart", command=self.restart)
+        
 
 
     def control(self):
@@ -105,7 +99,9 @@ class VisualGame(Game):
                 if p.type == "AI":
                     self.interactiveStrategy()
                     break
-        
+        self.restart_button.pack()
+        self.restart_button.config(text = "Restart")
+        canvas.update()
         self.control()
         root.mainloop()
         
@@ -252,17 +248,6 @@ class VisualGame(Game):
                 self.control()
             else:
                 self.showText("Please choose a valid move")
-
-    def pause(self):
-        if self.PAUSE:
-            self.START = not self.START
-            self.pause_button.config(text = "Pause")
-            canvas.update()
-        else:
-            self.PAUSE = True
-            self.pause_button.config(text = "Continue")
-            canvas.update()
-            root.wait_variable(self.START)
             
         
 
@@ -275,7 +260,7 @@ class VisualGame(Game):
     def interactiveStrategy(self):
         
         Qupdate = queue.Queue()
-        
+        self.restart_button.config(text = "Start Game")
         self.showText("Initializing the score for the terminal nodes V0, V1\n")
         for node in self.graph.V:
             node.min = 0

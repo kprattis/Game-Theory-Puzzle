@@ -39,7 +39,6 @@ def load_graph(filename):
     with open(filename) as f:
 
         N = int(f.readline())
-        print(N)
         E = list()
         i = 0
         for line in f:
@@ -54,7 +53,6 @@ def load_graph(filename):
                 
         V0 = random.choices(range(N), k=2)
         V1 = random.choices(list(set(range(N)) - set(V0)), k= 2)
-        print(V0, V1)
         
     return [N, E, V0, V1] 
 
@@ -72,11 +70,11 @@ def chooseStartingNode(V0, V1, N):
 if __name__ == "__main__":
 
     #Initialize the graph
-    filename = 'Adj_mat_2.txt'
+    filename = 'graphs/Adj_mat_2.txt'
 
     create_graph(filename, 20)
 
-    [N, E, V0, V1]  = load_graph('Adj_mat_1.txt')
+    [N, E, V0, V1]  = load_graph('graphs/Adj_mat_1.txt')
     
     G = Graph(N, E)
     s = chooseStartingNode(V0, V1, N)
@@ -86,9 +84,14 @@ if __name__ == "__main__":
     #strategy = solve_game(G, V0, V1)
     players = [Player(0), AIPlayer(1)]
     
-    #this is the game object
-    game = VisualGame(s, V0, V1, G, players)
+    #this is the game object Visual game to play with graphics, game to play in terminal
+    game = VisualGame(s, V0, V1, G, players, node_height=30, node_width=30)
+    #game = Game(s, V0, V1, G, players)
+
     print(players[1].strategy)
+    
+    #call the appropriate function to play a visual or terminal game
     play_game_visual(game)
+    #play_game_terminal(game)
 
     
